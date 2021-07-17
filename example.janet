@@ -26,13 +26,15 @@
   (ev/sleep 0.2)
   1)
 
-(defnp bb123 []
+#(macex '
+(defnp bb123 "aoe" []
   (ev/sleep 0.1337)
-  1)
+  1)#)
 
 
 (bb123)
 (aa)
+
 (defnp slow-adder
   [x y]
   (ev/sleep 0.2000)

@@ -37,21 +37,48 @@
 
 (defmacro defnp
   ```
-  Acts as `defn` except it wraps the `body` in a call to `p`.
+  Like `defn`, but wraps the body with a call to `(p ,name (do ,;body))`
   ```
-  [name args & body]
-  ~(as-macro ,defn ,name ,args
-             (p ,(keyword name)
-                (do ,;body))))
+  [name & more]
+  (def len (length more))
+  (def fstart
+    (fn recur [i]
+      (def {i ith} more)
+      (def t (type ith))
+      (if (= t :tuple)
+        i
+        (if (< i len) (recur (+ i 1))))))
+  (def body-start (inc (fstart 0)))
+
+  (def before-body (array/slice more 0 body-start))
+  (def body (array/slice more body-start))
+
+  ~(defn ,name
+     ,;before-body
+     (p ,(keyword name) (do ,;body))))
+
 
 (defmacro varfnp
   ```
-  Acts as `varfn` except it wraps the `body` in a call to `p`.
+  Like `varfn`, but wraps the body with a call to `(p ,name (do ,;body))`
   ```
-  [name args & body]
-  ~(as-macro ,varfn ,name ,args
-             (p ,(keyword name)
-                (do ,;body))))
+  [name & more]
+  (def len (length more))
+  (def fstart
+    (fn recur [i]
+      (def {i ith} more)
+      (def t (type ith))
+      (if (= t :tuple)
+        i
+        (if (< i len) (recur (+ i 1))))))
+  (def body-start (inc (fstart 0)))
+
+  (def before-body (array/slice more 0 body-start))
+  (def body (array/slice more body-start))
+
+  ~(varfn ,name
+     ,;before-body
+     (p ,(keyword name) (do ,;body))))
 
 (defn calc-avg
   [res-path times total results]
