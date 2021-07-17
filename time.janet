@@ -2,6 +2,16 @@
 (def global-results @{})
 (def global-stack @[])
 
+(defn reset-profiling!
+  []
+  (def timers (dyn :profile/timers global-timers))
+ 
+ (loop [k :keys timers]
+    (put timers k nil))
+
+  (loop [k :keys global-results]
+    (put global-results k nil)))
+
 (defn create-or-push
   [arr v]
   (array/push (or arr @[]) v))
@@ -15,25 +25,32 @@
 (defmacro p
   ```
   Time the execution of `form` using `os/clock` before and after,
-  and print the result to stdout.  returns: result of executing `form`.
-  Uses `tag` (default "Elapsed time:") to tag the printout.
+  and store the result in `timers` (defaults to `(dyn :profile/timers global-timers)`).
+  To see all stored results one can use `print-results`.
   ```
   [tag form &opt timers]
-  (default timers global-timers)
+  (default timers (dyn :profile/timers global-timers))
   (with-syms [start result end]
     ~(do
-       (array/push global-stack :inner)
-       (array/push global-stack ,tag)
+       (array/push ',global-stack :inner)
+       (array/push ',global-stack ,tag)
        (def ,start (os/clock))
-       (def ,result ,form)
-       (def ,end (os/clock))
-       #(pp ',global-stack)
-       #(pp ',timers)
-       (update-in ',timers ',global-stack add-value (- ,end ,start))
-       #(update ',timers ,tag array/push (- ,end ,start))
-       (array/pop global-stack)
-       (array/pop global-stack)
+       (def ,result (defer (do (array/pop ',global-stack)
+                             (array/pop ',global-stack))
+                      (def res ,form)
+                      (def ,end (os/clock))
+                      (update-in ',timers ',global-stack add-value (- ,end ,start))
+                      res))
        ,result)))
+
+(defmacro defnp
+  ```
+  Acts as `defn` except it wraps the `body` in a call to `p`.
+  ```
+  [name args & body]
+  ~(defn ,name ,args
+     (p ,(keyword name)
+        (do ,;body))))
 
 (defn calc-avg
   [res-path times total results]
@@ -267,6 +284,14 @@
     (pp (total :a))
     (print "total :a without inner")
     (pp (total-wo-inner :a))
+
+    (defnp adder
+      [x y]
+      (ev/sleep 0.5)
+      (+ x y))
+
+    (adder 5 5)
+
     (print-results))
 
   #  
