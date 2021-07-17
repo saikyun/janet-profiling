@@ -2,16 +2,6 @@
 (def global-results @{})
 (def global-stack @[])
 
-(defn reset-profiling!
-  []
-  (def timers (dyn :profile/timers global-timers))
- 
- (loop [k :keys timers]
-    (put timers k nil))
-
-  (loop [k :keys global-results]
-    (put global-results k nil)))
-
 (defn create-or-push
   [arr v]
   (array/push (or arr @[]) v))
@@ -39,6 +29,7 @@
                              (array/pop ',global-stack))
                       (def res ,form)
                       (def ,end (os/clock))
+                      (print "timing: " (- ,end ,start))
                       (update-in ',timers ',global-stack add-value (- ,end ,start))
                       res))
        ,result)))
@@ -48,9 +39,9 @@
   Acts as `defn` except it wraps the `body` in a call to `p`.
   ```
   [name args & body]
-  ~(defn ,name ,args
-     (p ,(keyword name)
-        (do ,;body))))
+  ~(as-macro ,defn ,name ,args
+             (p ,(keyword name)
+                (do ,;body))))
 
 (defn calc-avg
   [res-path times total results]
@@ -219,6 +210,27 @@
   (loop [[k v] :pairs results
          :when (not= k :results/grand-total)]
     (print-path [k] 0 results)))
+
+
+(defn reset-profiling!
+  []
+  (def timers (dyn :profile/timers global-timers))
+
+  (loop [k :keys timers]
+    (put timers k nil))
+
+  (loop [k :keys global-results]
+    (put global-results k nil)))
+
+(defn reset-profiling!
+  []
+  (def timers (dyn :profile/timers global-timers))
+
+  (loop [k :keys timers]
+    (put timers k nil))
+
+  (loop [k :keys global-results]
+    (put global-results k nil)))
 
 
 ##
