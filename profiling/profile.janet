@@ -31,6 +31,7 @@
                       (def ,end (os/clock))
                       (print "timing: " (- ,end ,start))
                       (update-in ',timers ',global-stack add-value (- ,end ,start))
+
                       res))
        ,result)))
 
@@ -40,6 +41,15 @@
   ```
   [name args & body]
   ~(as-macro ,defn ,name ,args
+             (p ,(keyword name)
+                (do ,;body))))
+
+(defmacro varfnp
+  ```
+  Acts as `varfn` except it wraps the `body` in a call to `p`.
+  ```
+  [name args & body]
+  ~(as-macro ,varfn ,name ,args
              (p ,(keyword name)
                 (do ,;body))))
 
@@ -117,7 +127,7 @@
   (loop [k :keys timers]
     (consume k timers results))
 
-  (results :results/grand-total))
+  (get results :results/grand-total 0))
 #
 #
 #
@@ -221,17 +231,6 @@
 
   (loop [k :keys global-results]
     (put global-results k nil)))
-
-(defn reset-profiling!
-  []
-  (def timers (dyn :profile/timers global-timers))
-
-  (loop [k :keys timers]
-    (put timers k nil))
-
-  (loop [k :keys global-results]
-    (put global-results k nil)))
-
 
 ##
 #
