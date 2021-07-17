@@ -122,13 +122,11 @@
         (def total (+ ;times))
 
         (update-in results [;path :total] |(+ (or $ 0) total))
-        (unless (one? (length path))
-          (update-in results [(last path) :total] |(+ (or $ 0) total)))
+        (update-in results [(keyword (string "all/" (last path))) :total] |(+ (or $ 0) total))
         (update results :results/grand-total |(+ (or $ 0) total))
 
         (calc-avg path times total results)
-        (unless (one? (length path))
-          (calc-avg [(last path)] times total results))
+        (calc-avg [(keyword (string "all/" (last path)))] times total results)
 
         (update-in timers [;inner-path :times] array/clear)))))
 
@@ -209,7 +207,7 @@
   (default indent 0)
 
   (print (string/format (string "%-" longest-key "s") (string (string/repeat " " indent)
-                                        ":" (last path)))
+                                                              ":" (last path)))
          (string/format "%.03f" (total path)) "\t"
          (if (get-in results [;path :inner])
            (string/format "%.03f" (total-wo-inner path))
@@ -228,7 +226,11 @@
            (string/format "%.02f%%" (* 100 (/ (total-wo-inner path) (total-time results))))
            "<-"))
 
-  (loop [k :keys (get-in results [;path :inner] [])]
+  (loop [#k :keys (get-in results [;path :inner] []
+         [k _] :in (-> (sort-by (fn [[k v]]
+                                  (get v :total 0))
+                                (pairs (get-in results [;path :inner] [])))
+                       reverse)]
     (print-path [;path k] (+ indent 2) results longest-key)))
 
 (defn width-of-key
@@ -255,7 +257,10 @@
   (print (string/format (string "%-" (+ longest-key 0) "s") "k")
          "total\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner")
 
-  (loop [[k v] :pairs results
+  (loop [[k v] :in (-> (sort-by (fn [[k v]]
+                                  (get v :total 0))
+                                (pairs results))
+                       reverse)
          :when (not= k :results/grand-total)]
     (print-path [k] 0 results longest-key)))
 
