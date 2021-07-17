@@ -8,10 +8,9 @@ janet
 git clone https://github.com/Saikyun/janet-profiling
 cd janet-profiling
 janet example.janet
-total :a
-0.841579
-total :a without inner
-0.0905581
+
+<...>
+
 # results
 k		total	w/o inner	avg	w/o inner	of total %	w/o inner
 :a        	0.842	0.091		0.281	0.030		40.20%		4.33%
