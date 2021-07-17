@@ -205,12 +205,11 @@
   (get-in results [;path :total]))
 
 (defn print-path
-  [path indent results]
+  [path indent results longest-key]
   (default indent 0)
 
-  (print (string/format "%-10s" (string (string/repeat " " indent)
+  (print (string/format (string "%-" longest-key "s") (string (string/repeat " " indent)
                                         ":" (last path)))
-         "\t"
          (string/format "%.03f" (total path)) "\t"
          (if (get-in results [;path :inner])
            (string/format "%.03f" (total-wo-inner path))
@@ -230,7 +229,14 @@
            "<-"))
 
   (loop [k :keys (get-in results [;path :inner] [])]
-    (print-path [;path k] (+ indent 2) results)))
+    (print-path [;path k] (+ indent 2) results longest-key)))
+
+(defn width-of-key
+  [[k v]]
+  (var d (inc (length (string k))))
+  (loop [ik :in (get v :inner [])]
+    (set d (max d (+ 2 (width-of-key [ik (get v ik)])))))
+  d)
 
 (defn print-results
   [&opt timers results]
@@ -240,12 +246,18 @@
   (loop [k :keys (get timers :inner [])]
     (consume k timers results))
 
+  (def longest-key (inc (max 0
+                             ;(map (fn [[k v]]
+                                     (+ (width-of-key [k v])))
+                                   (filter |(not= (first $) :results/grand-total) (pairs results))))))
+
   (print "# results")
-  (print "k\t\ttotal\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner")
+  (print (string/format (string "%-" (+ longest-key 0) "s") "k")
+         "total\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner")
 
   (loop [[k v] :pairs results
          :when (not= k :results/grand-total)]
-    (print-path [k] 0 results)))
+    (print-path [k] 0 results longest-key)))
 
 
 (defn reset-profiling!

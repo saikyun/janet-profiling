@@ -18,18 +18,29 @@
 
 
 (varfnp aa []
-  (ev/sleep 0.1337)
-  1)
+        (ev/sleep 0.1337)
+        1)
 
 
 (varfnp aa []
-  (ev/sleep 0.2)
-  1)
+        (ev/sleep 0.2)
+        1)
+
+
+(varfnp also-long-name-yeah []
+        (ev/sleep 0.2)
+        1)
+
+(varfnp very-long-name-yeah []
+        (also-long-name-yeah)
+        (ev/sleep 0.2)
+        1)
 
 #(macex '
 (defnp bb123 "aoe" []
+  (very-long-name-yeah)
   (ev/sleep 0.1337)
-  1)#)
+  1) #)
 
 
 (bb123)
@@ -43,6 +54,6 @@
 (slow-adder 3 4)
 (print-results)
 
-(reset-profiling!)
+#(reset-profiling!)
 
 global-results
