@@ -235,7 +235,11 @@
          (if (or (get-in results [;path :inner])
                  (get-in results [;path :inner/total]))
            (string/format "%.02f%%" (* 100 (/ (total-wo-inner path) (total-time results))))
-           "<-"))
+           "<-")
+
+         "\t\t"
+
+         (get-in results [;path :nof] "..."))
 
   (loop [#k :keys (get-in results [;path :inner] []
          [k _] :in (-> (sort-by (fn [[k v]]
@@ -268,7 +272,7 @@
 
   (print "# results")
   (print (string/format (string "%-" (+ longest-key 0) "s") "k")
-         "total\t\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner")
+         "total\t\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner\tnof calls")
 
   (loop [[k v] :in (-> (sort-by (fn [[k v]]
                                   (if (= k :results/grand-total)
