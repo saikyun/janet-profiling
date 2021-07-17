@@ -127,8 +127,8 @@
         # time of inner from the `all/` values
         (unless (one? (length path))
           (update-in results
-                     (tracev [(keyword (string "all/" ;(tracev (slice path -3 -2)))) :inner/total])
-                     |(tracev (+ (or $ 0) total))))
+                     [(keyword (string "all/" ;(slice path -3 -2))) :inner/total]
+                     |(+ (or $ 0) total)))
 
         (update-in results [(keyword (string "all/" (last path))) :total] |(+ (or $ 0) total))
         (update results :results/grand-total |(+ (or $ 0) total))
@@ -239,7 +239,9 @@
 
   (loop [#k :keys (get-in results [;path :inner] []
          [k _] :in (-> (sort-by (fn [[k v]]
-                                  (get v :total 0))
+                                  (total-wo-inner [;path k])
+                                  # (get v :total 0)
+)
                                 (pairs (get-in results [;path :inner] [])))
                        reverse)]
     (print-path [;path k] (+ indent 2) results longest-key)))
@@ -269,7 +271,9 @@
          "total\t\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner")
 
   (loop [[k v] :in (-> (sort-by (fn [[k v]]
-                                  (get v :total 0))
+                                  (if (= k :results/grand-total)
+                                    0
+                                    (total-wo-inner k)))
                                 (pairs results))
                        reverse)
          :when (not= k :results/grand-total)]
