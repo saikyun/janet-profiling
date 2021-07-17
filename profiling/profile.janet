@@ -122,6 +122,14 @@
         (def total (+ ;times))
 
         (update-in results [;path :total] |(+ (or $ 0) total))
+
+        # this is done in order to remove
+        # time of inner from the `all/` values
+        (unless (one? (length path))
+          (update-in results
+                     (tracev [(keyword (string "all/" ;(tracev (slice path -3 -2)))) :inner/total])
+                     |(tracev (+ (or $ 0) total))))
+
         (update-in results [(keyword (string "all/" (last path))) :total] |(+ (or $ 0) total))
         (update results :results/grand-total |(+ (or $ 0) total))
 
@@ -173,8 +181,9 @@
   (consume path timers results)
 
   (- (get-in results [;path :total])
-     (+ ;(map |(get-in results [;path $ :total])
-              (get-in results [;path :inner] [])))))
+     (get-in results [;path :inner/total]
+             (+ ;(map |(get-in results [;path $ :total])
+                      (get-in results [;path :inner] []))))))
 
 (defn avg-wo-inner
   [path &opt timers results]
@@ -208,21 +217,23 @@
 
   (print (string/format (string "%-" longest-key "s") (string (string/repeat " " indent)
                                                               ":" (last path)))
-         (string/format "%.03f" (total path)) "\t"
-         (if (get-in results [;path :inner])
-           (string/format "%.03f" (total-wo-inner path))
+         (string/format "%.05f" (total path)) "\t"
+         (if (or (get-in results [;path :inner])
+                 (get-in results [;path :inner/total]))
+           (string/format "%.05f" (total-wo-inner path))
            "<-")
-         "\t\t" (string/format "%.03f" (avg path))
+         "\t\t" (string/format "%.05f" (avg path))
          "\t"
          (if (get-in results [;path :inner])
-           (string/format "%.03f" (avg-wo-inner path))
+           (string/format "%.05f" (avg-wo-inner path))
            "<-")
          "\t\t"
          (string/format "%.02f%%" (* 100 (/ (total path) (total-time results))))
 
          "\t\t"
 
-         (if (get-in results [;path :inner])
+         (if (or (get-in results [;path :inner])
+                 (get-in results [;path :inner/total]))
            (string/format "%.02f%%" (* 100 (/ (total-wo-inner path) (total-time results))))
            "<-"))
 
@@ -255,7 +266,7 @@
 
   (print "# results")
   (print (string/format (string "%-" (+ longest-key 0) "s") "k")
-         "total\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner")
+         "total\t\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner")
 
   (loop [[k v] :in (-> (sort-by (fn [[k v]]
                                   (get v :total 0))
