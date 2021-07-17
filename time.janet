@@ -170,12 +170,12 @@
          (string/format "%.03f" (total path)) "\t"
          (if (get-in results [;path :inner])
            (string/format "%.03f" (total-wo-inner path))
-           "-||-")
+           "<-")
          "\t\t" (string/format "%.03f" (avg path))
          "\t"
          (if (get-in results [;path :inner])
            (string/format "%.03f" (avg-wo-inner path))
-           "-||-")
+           "<-")
          "\t\t"
          (string/format "%.02f%%" (* 100 (/ (total path) (total-time results))))
 
@@ -183,7 +183,7 @@
 
          (if (get-in results [;path :inner])
            (string/format "%.02f%%" (* 100 (/ (total-wo-inner path) (total-time results))))
-           "-||-"))
+           "<-"))
 
   (loop [k :keys (get-in results [;path :inner] [])]
     (print-path [;path k] (+ indent 2) results)))
