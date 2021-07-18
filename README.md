@@ -20,12 +20,12 @@ start a repl by running `janet`
    (do (ev/sleep 0.1) 
        (p :inner (ev/sleep 0.5))))
 (print-results)
-#=># results
+# results
 k              total    no inner    avg      no inner    total  no inner   nof calls
-:all/inner     0.50057  <-          0.50057  TBI         41.66% <-         1
-:measure       0.70103  0.20046     0.35052  -0.15005    58.34% 16.68%     2
-  :inner       0.50057  <-          0.50057  <-          41.66% <-         1
-:all/measure   0.70103  0.20046     0.35052  TBI         58.34% 16.68%     2
+:all/inner     0.50064  <-          0.50064  TBI         41.66% <-         1
+:measure       0.70112  0.20048     0.35056  0.10024     58.34% 16.68%     2
+  :inner       0.50064  <-          0.50064  <-          41.66% <-         1
+:all/measure   0.70112  0.20048     0.35056  TBI         58.34% 16.68%     2
 nil
 ```
 
@@ -39,14 +39,14 @@ cd janet-profiling
 janet example.janet
 # results
 k                          total    no inner    avg      no inner    total  no inner   nof calls
-:all/very-long-name-yeah   0.40073  0.20040     0.40073  TBI         26.08% 13.04%     1
-:slow-adder                0.20035  <-          0.20035  <-          13.04% <-         1
-:all/slow-adder            0.20035  <-          0.20035  TBI         13.04% <-         1
-:all/also-long-name-yeah   0.20033  <-          0.20033  TBI         13.04% <-         1
-:aa                        0.20028  <-          0.20028  <-          13.03% <-         1
-:all/aa                    0.20028  <-          0.20028  TBI         13.03% <-         1
-:all/bb123                 0.53497  0.13424     0.53497  TBI         34.81% 8.74%      1
-:bb123                     0.53497  0.13424     0.53497  0.13424     34.81% 8.74%      1
-  :very-long-name-yeah     0.40073  0.20040     0.40073  0.20040     26.08% 13.04%     1
-    :also-long-name-yeah   0.20033  <-          0.20033  <-          13.04% <-         1
+:aa                        0.20038  <-          0.20038  <-          13.04% <-         1
+:all/aa                    0.20038  <-          0.20038  TBI         13.04% <-         1
+:all/also-long-name-yeah   0.20035  <-          0.20035  TBI         13.04% <-         1
+:slow-adder                0.20033  <-          0.20033  <-          13.04% <-         1
+:all/slow-adder            0.20033  <-          0.20033  TBI         13.04% <-         1
+:all/very-long-name-yeah   0.40062  0.20027     0.40062  TBI         26.07% 13.03%     1
+:all/bb123                 0.53486  0.13424     0.53486  TBI         34.81% 8.74%      1
+:bb123                     0.53486  0.13424     0.53486  0.13424     34.81% 8.74%      1
+  :very-long-name-yeah     0.40062  0.20027     0.40062  0.20027     26.07% 13.03%     1
+    :also-long-name-yeah   0.20035  <-          0.20035  <-          13.04% <-         1
 ```
