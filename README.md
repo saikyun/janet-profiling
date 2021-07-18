@@ -16,16 +16,18 @@ start a repl by running `janet`
 ```clojure
 (use profiling/profile)
 (p :measure (ev/sleep 0.1))
+(p :inner (ev/sleep 0.5))
 (p :measure
    (do (ev/sleep 0.1) 
        (p :inner (ev/sleep 0.5))))
 (print-results)
 # results
 k              total    no inner    avg      no inner    total  no inner   nof calls
-:all/inner     0.50064  <-          0.50064  TBI         41.66% <-         1
-:measure       0.70112  0.20048     0.35056  0.10024     58.34% 16.68%     2
-  :inner       0.50064  <-          0.50064  <-          41.66% <-         1
-:all/measure   0.70112  0.20048     0.35056  TBI         58.34% 16.68%     2
+:all/inner     1.00129  <-          0.50065  0.50065     58.85% <-         2
+:inner         0.50065  <-          0.50065  <-          29.43% <-         1
+:measure       0.70010  0.19945     0.35005  0.09973     41.15% 11.72%     2
+  :inner       0.50065  <-          0.50065  <-          29.43% <-         1
+:all/measure   0.70010  0.19945     0.35005  0.09973     41.15% 11.72%     2
 nil
 ```
 
@@ -39,14 +41,14 @@ cd janet-profiling
 janet example.janet
 # results
 k                          total    no inner    avg      no inner    total  no inner   nof calls
-:aa                        0.20038  <-          0.20038  <-          13.04% <-         1
-:all/aa                    0.20038  <-          0.20038  TBI         13.04% <-         1
-:all/also-long-name-yeah   0.20035  <-          0.20035  TBI         13.04% <-         1
-:slow-adder                0.20033  <-          0.20033  <-          13.04% <-         1
-:all/slow-adder            0.20033  <-          0.20033  TBI         13.04% <-         1
-:all/very-long-name-yeah   0.40062  0.20027     0.40062  TBI         26.07% 13.03%     1
-:all/bb123                 0.53486  0.13424     0.53486  TBI         34.81% 8.74%      1
-:bb123                     0.53486  0.13424     0.53486  0.13424     34.81% 8.74%      1
-  :very-long-name-yeah     0.40062  0.20027     0.40062  0.20027     26.07% 13.03%     1
-    :also-long-name-yeah   0.20035  <-          0.20035  <-          13.04% <-         1
+:all/very-long-name-yeah   0.40071  0.20037     0.40071  0.20037     26.07% 13.04%     1
+:all/aa                    0.20036  <-          0.20036  0.20036     13.04% <-         1
+:aa                        0.20036  <-          0.20036  <-          13.04% <-         1
+:all/also-long-name-yeah   0.20034  <-          0.20034  0.20034     13.04% <-         1
+:all/slow-adder            0.20034  <-          0.20034  0.20034     13.04% <-         1
+:slow-adder                0.20034  <-          0.20034  <-          13.04% <-         1
+:all/bb123                 0.53501  0.13430     0.53501  0.13430     34.81% 8.74%      1
+:bb123                     0.53501  0.13430     0.53501  0.13430     34.81% 8.74%      1
+  :very-long-name-yeah     0.40071  0.20037     0.40071  0.20037     26.07% 13.04%     1
+    :also-long-name-yeah   0.20034  <-          0.20034  <-          13.04% <-         1
 ```
