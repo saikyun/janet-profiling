@@ -22,7 +22,7 @@
   (default timers (dyn :profile/timers global-timers))
   (with-syms [start result end]
     ~(do
-       (array/push ',global-stack :inner)
+       (array/push ',global-stack :profiling/inner)
        (array/push ',global-stack ,tag)
        (def ,start (os/clock))
        (def ,result (defer (do (array/pop ',global-stack)
@@ -107,10 +107,10 @@
               [path]
               path))
 
-  (def inner-path [:inner ;(interpose :inner path)])
+  (def inner-path [:profiling/inner ;(interpose :profiling/inner path)])
 
-  (loop [k :keys (get-in timers [;inner-path :inner] {})]
-    (put-in results [;path :inner k] k)
+  (loop [k :keys (get-in timers [;inner-path :profiling/inner] {})]
+    (put-in results [;path :profiling/inner k] k)
     (consume [;path k] timers results))
 
   (def times (get-in timers [;inner-path :times]))
@@ -183,7 +183,7 @@
   (- (get-in results [;path :total])
      (get-in results [;path :inner/total]
              (+ ;(map |(get-in results [;path $ :total])
-                      (get-in results [;path :inner] []))))))
+                      (get-in results [;path :profiling/inner] []))))))
 
 (defn avg-wo-inner
   [path &opt timers results]
@@ -198,7 +198,7 @@
 
   (- (get-in results [;path :avg])
      (+ ;(map |(get-in results [;path $ :avg])
-              (get-in results [;path :inner] [])))))
+              (get-in results [;path :profiling/inner] [])))))
 
 (defn total
   [path &opt timers results]
@@ -217,43 +217,48 @@
 
   (print (string/format (string "%-" longest-key "s") (string (string/repeat " " indent)
                                                               ":" (last path)))
-         (string/format "%.05f" (total path)) "\t"
-         (if (or (get-in results [;path :inner])
-                 (get-in results [;path :inner/total]))
-           (string/format "%.05f" (total-wo-inner path))
-           "<-")
-         "\t\t" (string/format "%.05f" (avg path))
-         "\t"
-         (if (get-in results [;path :inner])
-           (string/format "%.05f" (avg-wo-inner path))
-           "<-")
-         "\t\t"
-         (string/format "%.02f%%" (* 100 (/ (total path) (total-time results))))
+         (string/format "%-9.05f" (total path))
+         (string/format "%-12s"
+                        (if (or (get-in results [;path :profiling/inner])
+                                (get-in results [;path :inner/total]))
+                          (string/format "%.05f" (total-wo-inner path))
+                          "<-"))
+         (string/format "%-9.05f" (avg path))
 
-         "\t\t"
+         (string/format "%-12s"
+                        (cond (and (one? (length path))
+                                   (string/has-prefix? "all/" (string (first path))))
+                          "TBI"
 
-         (if (or (get-in results [;path :inner])
-                 (get-in results [;path :inner/total]))
-           (string/format "%.02f%%" (* 100 (/ (total-wo-inner path) (total-time results))))
-           "<-")
+                          (get-in results [;path :profiling/inner])
+                          (string/format "%.05f" (avg-wo-inner path))
 
-         "\t\t"
+                          "<-"))
+         (string/format "%-7s"
+                        (string/format "%.02f%%"
+                                       (* 100 (/ (total path) (total-time results)))))
+
+         (string/format "%-11s"
+                        (if (or (get-in results [;path :profiling/inner])
+                                (get-in results [;path :inner/total]))
+                          (string/format "%.02f%%" (* 100 (/ (total-wo-inner path) (total-time results))))
+                          "<-"))
 
          (get-in results [;path :nof] "..."))
 
-  (loop [#k :keys (get-in results [;path :inner] []
+  (loop [#k :keys (get-in results [;path :profiling/inner] []
          [k _] :in (-> (sort-by (fn [[k v]]
                                   (total-wo-inner [;path k])
                                   # (get v :total 0)
 )
-                                (pairs (get-in results [;path :inner] [])))
+                                (pairs (get-in results [;path :profiling/inner] [])))
                        reverse)]
     (print-path [;path k] (+ indent 2) results longest-key)))
 
 (defn width-of-key
   [[k v]]
   (var d (inc (length (string k))))
-  (loop [ik :in (get v :inner [])]
+  (loop [ik :in (get v :profiling/inner [])]
     (set d (max d (+ 2 (width-of-key [ik (get v ik)])))))
   d)
 
@@ -262,17 +267,24 @@
   (default timers global-timers)
   (default results global-results)
 
-  (loop [k :keys (get timers :inner [])]
+  (loop [k :keys (get timers :profiling/inner [])]
     (consume k timers results))
 
-  (def longest-key (inc (max 0
-                             ;(map (fn [[k v]]
-                                     (+ (width-of-key [k v])))
-                                   (filter |(not= (first $) :results/grand-total) (pairs results))))))
+  (def longest-key (+ 3
+                      (max 0
+                           ;(map (fn [[k v]]
+                                   (+ (width-of-key [k v])))
+                                 (filter |(not= (first $) :results/grand-total) (pairs results))))))
 
   (print "# results")
   (print (string/format (string "%-" (+ longest-key 0) "s") "k")
-         "total\t\tw/o inner\tavg\tw/o inner\tof total %\tw/o inner\tnof calls")
+         (string/format "%-9s" "total")
+         (string/format "%-12s" "no inner")
+         (string/format "%-9s" "avg")
+         (string/format "%-12s" "no inner")
+         (string/format "%-7s" "total")
+         (string/format "%-11s" "no inner")
+         "nof calls")
 
   (loop [[k v] :in (-> (sort-by (fn [[k v]]
                                   (if (= k :results/grand-total)
@@ -310,14 +322,14 @@
       results @{}
       random-numbers (seq [i :range [0 1000]]
                        (* i (math/random)))]
-  (put-in timers [:inner :aa :times] (array ;random-numbers))
+  (put-in timers [:profiling/inner :aa :times] (array ;random-numbers))
   (def res1 (avg :aa timers results))
 
   (var checked 0)
   (while (< checked (length random-numbers))
     (def end (min (length random-numbers)
                   (+ checked (math/floor (* 10 (math/random))))))
-    (put-in timers [:inner :aa2 :times] (array/slice random-numbers checked end))
+    (put-in timers [:profiling/inner :aa2 :times] (array/slice random-numbers checked end))
     (avg :aa2 timers results)
     (set checked end))
 
