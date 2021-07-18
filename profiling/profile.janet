@@ -196,9 +196,13 @@
 
   (consume path timers results)
 
-  (- (get-in results [;path :avg])
-     (+ ;(map |(get-in results [;path $ :avg])
-              (get-in results [;path :profiling/inner] [])))))
+  (/ (total-wo-inner path)
+     (get-in results [;path :nof]))
+
+  #  (- (get-in results [;path :avg])
+  #     (+ ;(map |(get-in results [;path $ :avg])
+  #              (get-in results [;path :profiling/inner] []))))
+)
 
 (defn total
   [path &opt timers results]
