@@ -230,11 +230,14 @@
          (string/format "%-9.05f" (avg path))
 
          (string/format "%-12s"
-                        (cond (and (one? (length path))
-                                   (string/has-prefix? "all/" (string (first path))))
-                          "TBI"
+                        (cond
+                          #(and (one? (length path))
+                          #                                   (string/has-prefix? "all/" (string (first path))))
+                          #                          "TBI"
 
-                          (get-in results [;path :profiling/inner])
+                          (or (and (one? (length path))
+                                   (string/has-prefix? "all/" (string (first path))))
+                              (get-in results [;path :profiling/inner]))
                           (string/format "%.05f" (avg-wo-inner path))
 
                           "<-"))
