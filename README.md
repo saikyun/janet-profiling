@@ -3,7 +3,32 @@
 ## dependencies
 janet
 
-## usage
+## installation
+
+```
+jpm install https://github.com/Saikyun/janet-profiling
+```
+
+## basic usage
+
+start a repl by running `janet`
+
+```clojure
+(use profiling/profile)
+(p :measure (ev/sleep 0.5))
+(print-results)
+#=>
+# results
+k            total		w/o inner	avg	w/o inner	of total %	w/o inner	nof calls
+:all/measure 0.50062	<-		0.50062	<-		100.00%		<-		1
+:measure     0.50062	<-		0.50062	<-		100.00%		<-		1
+nil
+```
+
+## example
+
+look at [example.janet](./example.janet)
+
 ```
 git clone https://github.com/Saikyun/janet-profiling
 cd janet-profiling
