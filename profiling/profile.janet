@@ -29,7 +29,7 @@
                              (array/pop ',global-stack))
                       (def res ,form)
                       (def ,end (os/clock))
-                      (update-in ',timers ',global-stack add-value (- ,end ,start))
+                      (update-in ',timers ',global-stack ',add-value (- ,end ,start))
 
                       res))
        ,result)))
