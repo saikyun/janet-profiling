@@ -54,7 +54,7 @@
 
   ~(defn ,name
      ,;before-body
-     (p ,(keyword name) (do ,;body))))
+     (as-macro ,p ,(keyword name) (do ,;body))))
 
 
 (defmacro varfnp
@@ -77,7 +77,7 @@
 
   ~(varfn ,name
      ,;before-body
-     (p ,(keyword name) (do ,;body))))
+     (as-macro ,p ,(keyword name) (do ,;body))))
 
 (defn calc-avg
   [res-path times total results]
